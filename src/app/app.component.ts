@@ -6,6 +6,7 @@ import * as am4maps from "@amcharts/amcharts4/maps";
 import am4geodata_indiaHigh from "@amcharts/amcharts4-geodata/india2019High";
 import { AppService } from './app.service';
 import { fileURLToPath } from 'url';
+import { CompileShallowModuleMetadata } from '@angular/compiler';
 
 am4core.useTheme(am4themes_animated);
 
@@ -61,21 +62,30 @@ export class AppComponent implements OnInit, OnDestroy{
   categoryAxis:any;
   valueAxis:any;
 
-  setResponsiveTable="";
-
   cumulative:boolean;
+  polygonSeries:any;
+
+  accordianHeaderMobile = {
+    'col1':'State',
+    'col2':'Cnf',
+    'col3':'Actv',
+    'col4':'Rcvd',
+    'col5':'Dcsd',
+  };
 
   constructor(private appService:AppService, private zone:NgZone){
-
     this.blue = true;
     this.cumulative = true;
-    if(screen.width<500){
-      this.setResponsiveTable="table-responsive";
-    }
   }
 
   ngOnInit(){
     try{
+      if(window.innerWidth>500){
+        this.accordianHeaderMobile.col2 = 'Confirmed';
+        this.accordianHeaderMobile.col3 = 'Active';
+        this.accordianHeaderMobile.col4 = 'Recovered';
+        this.accordianHeaderMobile.col5 = 'Deaths';
+      }
       this.fetchData();
       this.trendChart1 = am4core.create("trendchart1", am4charts.XYChart);
       this.categoryAxis = this.trendChart1.xAxes.push(new am4charts.CategoryAxis());
@@ -87,6 +97,8 @@ export class AppComponent implements OnInit, OnDestroy{
       this.chartMap.geodata = am4geodata_indiaHigh;
       // Set projection
       this.chartMap.projection = new am4maps.projections.Miller();
+
+      this.polygonSeries = this.chartMap.series.push(new am4maps.MapPolygonSeries());  
     }
     catch(err){
       console.log(err);
@@ -94,9 +106,7 @@ export class AppComponent implements OnInit, OnDestroy{
   }
 
   ngAfterViewInit(){
-    if(screen.width<500){
-      this.setResponsiveTable="table-responsive";
-    }
+    this.composeChartData();
     this.drawMap();
     if(this.blue && this.cumulative){
       this.drawTrendChart1(this.chartTotalConfirmedWeekly);
@@ -131,38 +141,87 @@ export class AppComponent implements OnInit, OnDestroy{
       this.summaryData = JSON.parse(JSON.stringify(res.statewise[0]));
       this.prevDayData.totalActive = (Number(this.summaryData.confirmed) - (Number(this.summaryData.recovered) + Number(this.summaryData.deaths))).toString();
       this.prevDayData.dailyActive = (Number(this.prevDayData.dailyconfirmed) - (Number(this.prevDayData.dailyrecovered) + Number(this.prevDayData.dailydeceased))).toString();
-
       this.stateData = JSON.parse(JSON.stringify(res.statewise));
-
       this.timeSeriesData = JSON.parse(JSON.stringify(res.cases_time_series));
+      this.testedSummary = res.tested[res.tested.length-1];
+    })
+  }
 
+  composeChartData(){
+    this.chartTotalConfirmedWeekly=[];
+    this.chartDailyConfirmed=[];
+    this.chartTotalActiveWeekly=[];
+    this.chartDailyActive=[];
+    this.chartTotalRecoveredWeekly=[];
+    this.chartDailyRecovered=[];
+    this.chartTotalDeathsWeekly=[];
+    this.chartDailyDeaths=[];
+    this.mapDataConfirmed=[];
+    this.mapDataActive=[];
+    this.mapDataRecovered=[];
+    this.mapDataDeaths=[];
+
+    if(this.blue){
       for(let weekCount=this.timeSeriesData.length; weekCount>=1; weekCount--){
         this.chartTotalConfirmedWeekly.push({
           "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalconfirmed),
-          "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
-        });
-        this.chartTotalActiveWeekly.push({
-          "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalconfirmed - (Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalrecovered) + Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totaldeceased ))),
-          "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
-        });
-        this.chartTotalRecoveredWeekly.push({
-          "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalrecovered),
-          "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
-        });
-        this.chartTotalDeathsWeekly.push({
-          "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totaldeceased),
           "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
         });
         this.chartDailyConfirmed.push({
           "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].dailyconfirmed),
           "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
         });
+      }
+      for(let i=0; i<this.stateData.length; i++){
+        if(this.stateData[i]['statecode']!="LA"){
+          this.mapDataConfirmed.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['confirmed'])});
+        }else{
+          this.mapDataConfirmed.push({id:"IN-LK", value:Number(this.stateData[i]['confirmed'])});
+        }
+      }
+    }
+    else if(this.red){
+      for(let weekCount=this.timeSeriesData.length; weekCount>=1; weekCount--){
+        this.chartTotalActiveWeekly.push({
+          "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalconfirmed - (Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalrecovered) + Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totaldeceased ))),
+          "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
+        });
         this.chartDailyActive.push({
           "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].dailyconfirmed - (Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].dailyrecovered) + Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].dailydeceased ))),
           "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
         });
+      }
+      for(let i=0; i<this.stateData.length; i++){
+        if(this.stateData[i]['statecode']!="LA"){
+          this.mapDataActive.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['active'])});
+        }else{
+          this.mapDataActive.push({id:"IN-LK", value:Number(this.stateData[i]['active'])});
+        }
+      }
+    }
+    else if(this.green){
+      for(let weekCount=this.timeSeriesData.length; weekCount>=1; weekCount--){
+        this.chartTotalRecoveredWeekly.push({
+          "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totalrecovered),
+          "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
+        });
         this.chartDailyRecovered.push({
           "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].dailyrecovered),
+          "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
+        });
+      }
+      for(let i=0; i<this.stateData.length; i++){
+        if(this.stateData[i]['statecode']!="LA"){
+          this.mapDataRecovered.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['recovered'])});
+        }else{
+          this.mapDataRecovered.push({id:"IN-LK", value:Number(this.stateData[i]['recovered'])});
+        }
+      }
+    }
+    else if(this.black){
+      for(let weekCount=this.timeSeriesData.length; weekCount>=1; weekCount--){
+        this.chartTotalDeathsWeekly.push({
+          "value":Number(this.timeSeriesData[this.timeSeriesData.length-weekCount].totaldeceased),
           "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
         });
         this.chartDailyDeaths.push({
@@ -170,28 +229,20 @@ export class AppComponent implements OnInit, OnDestroy{
           "date":this.timeSeriesData[this.timeSeriesData.length-weekCount]['date'].slice(0,6),
         });
       }
-
       for(let i=0; i<this.stateData.length; i++){
         if(this.stateData[i]['statecode']!="LA"){
-          this.mapDataConfirmed.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['confirmed'])});
-          this.mapDataActive.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['active'])});
-          this.mapDataRecovered.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['recovered'])});
           this.mapDataDeaths.push({id:"IN-"+this.stateData[i]['statecode'], value: Number(this.stateData[i]['deaths'])});
         }
         else{
-          this.mapDataConfirmed.push({id:"IN-LK", value:Number(this.stateData[i]['confirmed'])});
-          this.mapDataActive.push({id:"IN-LK", value:Number(this.stateData[i]['active'])});
-          this.mapDataRecovered.push({id:"IN-LK", value:Number(this.stateData[i]['recovered'])});
           this.mapDataDeaths.push({id:"IN-LK", value:Number(this.stateData[i]['deaths'])});
         }
       }
-
-      this.testedSummary = res.tested[res.tested.length-1];
-    })
+    }
   }
 
   fetchDistrictData(){
     this.appService.getDistrictData().subscribe((res)=>{
+      
     })
   }
 
@@ -254,66 +305,66 @@ export class AppComponent implements OnInit, OnDestroy{
     this.trendChart1.cursor = new am4charts.XYCursor();
 
     this.trendChart1.scrollbarX = new am4core.Scrollbar();
-    this.trendChart1.scrollbarX.minHeight = 15;
-
+    this.trendChart1.scrollbarX.minHeight = 10;
+    this.trendChart1.scrollbarY = new am4core.Scrollbar();
+    this.trendChart1.scrollbarY.minWidth = 10;
   }
 
   drawMap(){ 
       // Create map polygon series
-      let polygonSeries = this.chartMap.series.push(new am4maps.MapPolygonSeries());  
       let lastSelected;
       let eventData;
       
       if(this.blue){
-        polygonSeries.heatRules.push({
+        this.polygonSeries.heatRules.push({
           property: "fill",
-          target: polygonSeries.mapPolygons.template,
+          target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#ffffff"),
           "max": am4core.color("#5B86E5"),
           "maxValue": 20000
         });
-        polygonSeries.data = this.mapDataConfirmed;
-        polygonSeries.mapPolygons.template.stroke = am4core.color("#5B86E5");
+        this.polygonSeries.data = this.mapDataConfirmed;
+        this.polygonSeries.mapPolygons.template.stroke = am4core.color("#5B86E5");
       }
       else if(this.green){
-        polygonSeries.heatRules.push({
+        this.polygonSeries.heatRules.push({
           property: "fill",
-          target: polygonSeries.mapPolygons.template,
+          target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#ffffff"),
           "max": am4core.color("#1D976C"),
           "maxValue": 20000
         });
-        polygonSeries.data = this.mapDataRecovered;
-        polygonSeries.mapPolygons.template.stroke = am4core.color("#1D976C");
+        this.polygonSeries.data = this.mapDataRecovered;
+        this.polygonSeries.mapPolygons.template.stroke = am4core.color("#1D976C");
       }
       else if(this.red){
-        polygonSeries.heatRules.push({
+        this.polygonSeries.heatRules.push({
           property: "fill",
-          target: polygonSeries.mapPolygons.template,
+          target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#ffffff"),
           "max": am4core.color("#dc3545"),
           "maxValue": 20000
         });
-        polygonSeries.data = this.mapDataActive;
-        polygonSeries.mapPolygons.template.stroke = am4core.color("#dc3545");
+        this.polygonSeries.data = this.mapDataActive;
+        this.polygonSeries.mapPolygons.template.stroke = am4core.color("#dc3545");
       }
       else if(this.black){
-        polygonSeries.heatRules.push({
+        this.polygonSeries.heatRules.push({
           property: "fill",
-          target: polygonSeries.mapPolygons.template,
+          target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#FFFFFF"),
           "max": am4core.color("#757575"),
           "maxValue": 1000
         });
-        polygonSeries.data = this.mapDataDeaths;
-        polygonSeries.mapPolygons.template.stroke = am4core.color("#757575");
+        this.polygonSeries.data = this.mapDataDeaths;
+        this.polygonSeries.mapPolygons.template.stroke = am4core.color("#757575");
       }
   
       // Make map load polygon (like country names) data from GeoJSON
-      polygonSeries.useGeodata = true;
+      this.polygonSeries.useGeodata = true;
   
       // Configure series tooltip
-      let polygonTemplate = polygonSeries.mapPolygons.template;
+      let polygonTemplate = this.polygonSeries.mapPolygons.template;
       polygonTemplate.togglable = true;
       polygonTemplate.clickable = true;
       polygonTemplate.tooltipText = "{name}: {value}";
@@ -338,34 +389,33 @@ export class AppComponent implements OnInit, OnDestroy{
       // Create hover state and set alternative fill color
       let hs = polygonTemplate.states.create("hover");
       if(this.blue){
-        hs.properties.fill = am4core.color("#465982");
+        hs.properties.fill = am4core.color("#427cff");
       }
       else if(this.red){
-        hs.properties.fill = am4core.color("#c4878c");
+        hs.properties.fill = am4core.color("#d6636e");
       }
       else if(this.green){
-        hs.properties.fill = am4core.color("#547d6e");
+        hs.properties.fill = am4core.color("#34bf85");
       }
       else if(this.black){
-        hs.properties.fill = am4core.color("#909090");
+        hs.properties.fill = am4core.color("#b5b5b5");
       }
 
       let as = polygonTemplate.states.create("active");
       if(this.blue){
-        as.properties.fill = am4core.color("#465982");
+        as.properties.fill = am4core.color("#3f5da1");
       }
       else if(this.red){
-        as.properties.fill = am4core.color("#c4878c");
+        as.properties.fill = am4core.color("#94232e");
       }
       else if(this.green){
-        as.properties.fill = am4core.color("#547d6e");
+        as.properties.fill = am4core.color("#14694b");
       }
       else if(this.black){
-        as.properties.fill = am4core.color("#909090");
+        as.properties.fill = am4core.color("#4d4d4d");
       }
 
       // this.chartMap.zoomControl = new am4maps.ZoomControl();
-
       let homeButton = this.chartMap.chartContainer.createChild(am4core.Button);
       homeButton.events.on("hit", ()=>{
         this.searchText = "";
@@ -398,9 +448,8 @@ export class AppComponent implements OnInit, OnDestroy{
 
   selectMap(color){
     this.trendChart1.series.removeIndex(0);
-    
     if(color == 'blue'){this.blue=true; this.black=false; this.green=false; this.red=false; this.ngAfterViewInit();}
-    else if(color == 'red'){this.blue=false; this.black=false; this.green=false; this.red=true; this.ngAfterViewInit();}
+    else if(color == 'red'){this.blue=false; this.black=false; this.green=false; this.red=true; this.ngAfterViewInit(); console.log("HERE12"+ new Date());}
     else if(color == 'green'){this.blue=false; this.black=false; this.green=true; this.red=false; this.ngAfterViewInit();}
     else if(color == 'black'){this.blue=false; this.black=true; this.green=false; this.red=false; this.ngAfterViewInit();}
     else {this.blue=true; this.black=false; this.green=false; this.red=false;}
@@ -416,5 +465,18 @@ export class AppComponent implements OnInit, OnDestroy{
     this.cumulative = false;
     this.trendChart1.series.removeIndex(0);
     this.ngAfterViewInit();
+  }
+
+  zoomState(statecode){
+    let stateCode="IN-"+statecode;
+    this.chartMap.dispatchImmediately("ready");
+    
+    let state= this.polygonSeries.getPolygonById(stateCode);
+    this.chartMap.events.on("ready", (ev)=> {
+      this.chartMap.zoomToMapObject(this.polygonSeries.getPolygonById(stateCode));
+      setTimeout(function() {
+        state.isActive = true;
+      }, 1000);
+    });
   }
 }
