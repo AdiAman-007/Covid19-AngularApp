@@ -1,0 +1,110 @@
+<nav class="navbar-expand-lg">
+  <a class="navbar-brand"><i class="fas fa-virus"></i><h4>Covid-19 Dashboard</h4></a>
+</nav>
+<div class="container">
+  <div class="row hero-top" id="hero-top">
+      <div class="confirmed col-lg-3 col-md-3 col-sm-1">
+        <div style="text-align: left;text-align: center;margin-left: 40px;"><i class="fas fa-check-circle"></i><br/><br/></div>
+        <div style="text-align: left;text-align: center;">
+          <h2>{{this.summaryData.confirmed}}</h2>
+          <p>Confirmed [+{{prevDayData.dailyconfirmed}}]</p>
+        </div>
+      </div>
+      <div class="active col-lg-3 col-md-3 col-sm-1">
+        <div style="text-align: left;text-align: center;margin-left: 40px;"><i class="fas fa-chart-line"></i><br/><br/></div>
+        <div style="text-align: left;text-align: center;">
+          <h2>{{this.prevDayData.totalActive}}</h2>
+          <p>Active [+{{this.prevDayData.dailyActive}}]</p> 
+        </div>
+      </div>
+      <div class="recovered col-lg-3 col-md-3 col-sm-1">
+        <div style="text-align: left;text-align: center;margin-left: 40px;"><i class="fas fa-heartbeat"></i><br/><br/></div>
+        <div style="text-align: left;text-align: center;">
+          <h2>{{this.summaryData.recovered}}</h2>
+          <p>Recovered [+{{this.prevDayData.dailyrecovered}}]</p>    
+        </div>
+      </div>
+      <div class="death col-lg-3 col-md-3 col-sm-1">
+        <div style="text-align: left;text-align: center;margin-left: 40px;"><i class="fas fa-exclamation-circle"></i><br/><br/></div>  
+        <div style="text-align: left;text-align: center;">
+          <h2>{{this.summaryData.deaths}}</h2>
+          <p>Deaths [+{{this.prevDayData.dailydeceased}}]</p>
+        </div>
+      </div>
+  </div>
+  <div class="row hero-bottom">
+    <p style="margin-left: 20px;margin-right: 20px;">Total samples tested: {{testedSummary.totalsamplestested}}</p>
+    <p style="margin-left: 20px;margin-right: 20px;">Samples tested today: {{testedSummary.samplereportedtoday}}</p>
+  </div>
+  <br/>
+  <div class="trend row">
+    <div class="col-lg col-md">
+      <h4 class="text-dark">COUNTRY TREND</h4>
+    </div>
+    <div class="col-lg col-md" style="display: flex; justify-content: center;">
+      <div>
+        <button class="btn btn-dark btn-sm" (click)="setCumulative()" *ngIf="cumulative">Cumulative</button>
+        <button class="btn btn-secondary btn-sm" (click)="setCumulative()" *ngIf="!cumulative">Cumulative</button>
+        <button class="btn btn-dark btn-sm" (click)="setDaily()" *ngIf="!cumulative">Daily</button>
+        <button class="btn btn-secondary btn-sm" (click)="setDaily()" *ngIf="cumulative">Daily</button>
+      </div>
+    </div>
+    <div class="col-lg col-md">
+      <div class="map-header trend-header">
+        <div class="row mapselector">
+          <p *ngIf="blue"> Confirmed </p><div class="blue" [class.blueactive]="blue" (click)="selectMap('blue')"></div>
+          <p *ngIf="red"> Active </p><div class="red" [class.redactive]="red" (click)="selectMap('red')"></div>
+          <p *ngIf="green"> Recovered </p><div class="green" [class.greenactive]="green" (click)="selectMap('green')"></div>
+          <p *ngIf="black"> Deaths </p><div class="black" [class.blackactive]="black" (click)="selectMap('black')"></div>
+        </div>
+      </div>
+    </div>
+    <div id="trendchart1"></div>
+  </div>
+  <br/>
+  <div class="row">
+    <div class="content-left col-lg">
+      <div class="map">
+        <div>
+          <h4 class="text-dark" *ngIf="!searchText">INDIA MAP</h4>
+          <h4 *ngIf="searchText">{{searchText | uppercase}}</h4>
+          <p class="text-light text-small">Hover/select a state/UT for more details</p>
+        </div>
+        <div class="map-header">
+          <div class="row mapselector">
+            <p *ngIf="blue"> Confirmed </p><div class="blue" [class.blueactive]="blue" (click)="selectMap('blue')"></div>
+            <p *ngIf="red"> Active </p><div class="red" [class.redactive]="red" (click)="selectMap('red')"></div>
+            <p *ngIf="green"> Recovered </p><div class="green" [class.greenactive]="green" (click)="selectMap('green')"></div>
+            <p *ngIf="black"> Deaths </p><div class="black" [class.blackactive]="black" (click)="selectMap('black')"></div>
+          </div>
+        </div>
+        <div id="mapdiv"></div>
+      </div>
+    </div>
+    <div class="content-right col-lg">
+      <input class="search-box" [(ngModel)]="searchText" placeholder="Search with state name">
+      <table class="table table-sm table-striped {{setResponsiveTable}}" >
+        <thead class="thead-darker">
+          <th>State</th>
+          <th>Confirmed</th>
+          <th>Active</th>
+          <th>Recovered</th>
+          <th>Deaths</th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of stateData | filter : searchText" >
+            <td *ngIf="data.state!='Total'">{{data.state}}</td>
+            <td *ngIf="data.state!='Total'">{{data.confirmed}}</td>
+            <td *ngIf="data.state!='Total'">{{data.active}}</td>
+            <td *ngIf="data.state!='Total'">{{data.recovered}}</td>
+            <td *ngIf="data.state!='Total'">{{data.deaths}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <footer class="row " style="margin-top: 50px; border-top: 1px solid #b3b3b3; display: flex;justify-content: space-between; min-height: 10vh;">
+    <p class="text-small text-light" style="text-align: center; margin-top: 20px; margin-left: 4vw;">Stay home! Stay safe!</p>
+    <p class="text-small text-light" style="text-align: center; margin-top: 20px; margin-right: 4vw;">Ver. 2.7</p>
+  </footer>
+</div>

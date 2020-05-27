@@ -1,0 +1,313 @@
+/* You can add global styles to this file, and also import other style files */
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@font-face {
+    font-family: 'Montserrat';
+    src: url(/assets/Montserrat-Regular.ttf) format("truetype");
+  }
+@font-face{
+    font-family: 'Ubuntu';
+    src: url(/assets/Ubuntu-Light.ttf) format("truetype");
+}
+
+html{
+    scroll-behavior: smooth;
+
+}
+body{
+    font-family: 'Montserrat', sans-serif;
+    /* background: #757575;
+    color: wheat; */
+    width: 100vw !important;
+    background-color: white;
+    overflow-x: hidden;
+}
+body::after {
+    content: "";
+    /* background-image: url('../src/assets/background.webp'); */
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity: 0.2;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;   
+  }
+.text-light{
+    color: rgb(122, 122, 122) !important;
+}
+.text-dark{
+    color: rgb(100, 100, 100) !important;
+}
+.text-small{
+    font-size: 12px;
+}
+nav{
+    /* border-bottom: 1px solid lightgray; */
+    font-weight: bolder;
+    background-color: #ffffff;
+    top:0;
+    left:0;
+    width: 100vw !important;
+    position: absolute;
+    height: 60px;
+    z-index: 10;
+    -webkit-box-shadow: 0px 11px 19px -9px rgba(0,0,0,0.15);
+    -moz-box-shadow: 0px 11px 19px -9px rgba(0,0,0,0.15);
+    box-shadow: 0px 11px 19px -9px rgba(0,0,0,0.15);
+}
+.navbar-brand{
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.fa-virus{
+    font-size: 30px;
+    margin-right: 20px;
+}
+.container{
+    z-index: 1;
+    /* background-color:rgba(255, 255, 255,0.5);
+    background: rgba(255, 255, 255,0.5); */
+}
+
+.hero-top{
+    /* display: flex;
+    flex-direction: row;
+    justify-content: space-between; */
+    margin-top: 90px;
+    display: flex;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+}
+.hero-bottom{
+    margin-top: 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: center;
+    color: #6200ea;
+    line-height: 25px;
+    font-size: 0.8em;
+}
+
+.active{
+    color: #dc3545;  /* fallback for old browsers */
+    /* margin-bottom: 5px; */
+}
+.recovered{
+    color: #1D976C;  /* fallback for old browsers */
+    margin-bottom: 10px;
+}
+.confirmed{
+    color: #5B86E5;  /* fallback for old browsers */
+    margin-bottom: 10px;
+}
+.death{
+    color: #757575;  /* fallback for old browsers */  
+    margin-bottom: 10px;
+}
+#mapdiv{
+    width: 100%;
+    height: 600px;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.8em;
+}
+#trendchart1{
+    width: 100%;
+    height: 350px;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.7em;
+    font-weight: 600;
+    color: rgb(179, 179, 179);
+}
+p{
+    font-weight: 800;
+}
+h2{
+    font-weight: bolder;
+}
+.fa-exclamation-circle{
+    font-size: 40px;
+    margin-right: 40px;
+    margin-top: 10px;
+}
+.fa-heartbeat{
+    font-size: 40px;
+    margin-right: 40px;
+    margin-top: 10px;
+}
+.fa-chart-line{
+    font-size: 40px;
+    margin-right: 40px;
+    margin-top: 10px;
+}
+.fa-check-circle{
+    font-size: 40px;
+    margin-right: 40px;
+    margin-top: 10px;
+}
+.table{
+    font-size: 0.8em;
+    border-radius: 5px;
+}
+thead{
+    min-width: 100% !important;
+}
+tbody{
+    min-width: 100% !important;
+}
+.map-header{
+    width: 100%;
+}
+.mapselector{
+    margin-bottom: 10px;
+    font-size: 0.8em;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.blue{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: white;
+    border: 5px solid #5B86E5;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.green{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: white;
+    border: 5px solid#1D976C;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.black{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: white;
+    border: 5px solid #757575;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.red{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: white;
+    border: 5px solid #dc3545;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.blueactive{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: #5B86E5;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.greenactive{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: #1D976C;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.blackactive{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: #757575;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.redactive{
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    background-color: #dc3545;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.thead-darker{
+    border-top: none !important;
+    font-weight: 800;
+    font-size: 1em;
+}
+
+.search-box{
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    text-align: center;
+    font-size: 1.33em;
+    background-color: none;
+    color: rgb(100, 100, 100) !important;
+    font-weight: 500px;
+    font-family: "Ubuntu", sans-serif;
+}
+
+.search-box:focus{
+    outline: none;
+}
+
+.content-right{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-left: 0px !important;
+}
+
+.btn{
+    font-size: 0.8em;
+    width: 90px;
+    border-bottom-left-radius: 0px !important;
+    border-bottom-right-radius: 0px !important;
+    margin-left: 1px;
+    border: 0px !important;
+}
+
+.btn-secondary{
+    background-color: rgb(180,180,180);
+}
+
+.btn-dark{
+    background-color: rgb(100,100,100);
+}
+
+@media only screen and (max-width: 500px){
+    #chartdiv{
+        margin-top: 10px;
+        width: 100%;
+        height: 200px;
+    }
+    .container {
+        margin-top: none;
+      }
+    #mapdiv{
+        width: 100%;
+        height: 500px;
+    }
+    .death{
+        margin-bottom: 60px;
+    }
+    .table{
+        font-size: 0.7em;
+        border-radius: 5px;
+    }
+    .trend-header{
+        margin-top: 10px;
+    }
+}
+@media only screen and (max-width: 1024px){
+    .content-right{
+        margin-left: 15px !important;
+    }
+}
