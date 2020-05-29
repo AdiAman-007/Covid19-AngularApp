@@ -10,14 +10,6 @@ import { CompileShallowModuleMetadata } from '@angular/compiler';
 
 am4core.useTheme(am4themes_animated);
 
-interface _summaryData{
-  active:string,
-  confirmed:string,
-  deaths:string,
-  lastupdatedtime:string,
-  recovered:string,
-}
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -51,7 +43,11 @@ export class AppComponent implements OnInit, OnDestroy{
   monthlyData:any = [];
 
   searchText:string = "";
-  
+  stateCode:string = "";
+  stateSelected:string = "";
+  statePolygon:any;
+  showTable:boolean;
+
   black = false;
   green = false;
   red = false;
@@ -65,6 +61,9 @@ export class AppComponent implements OnInit, OnDestroy{
   cumulative:boolean;
   polygonSeries:any;
 
+  pageList:any = [0,1,2,3];
+  pageNmbr:number = 0;
+
   accordianHeaderMobile = {
     'col1':'State',
     'col2':'Cnf',
@@ -76,6 +75,7 @@ export class AppComponent implements OnInit, OnDestroy{
   constructor(private appService:AppService, private zone:NgZone){
     this.blue = true;
     this.cumulative = true;
+    this.showTable = true;
   }
 
   ngOnInit(){
@@ -87,18 +87,24 @@ export class AppComponent implements OnInit, OnDestroy{
         this.accordianHeaderMobile.col5 = 'Deaths';
       }
       this.fetchData();
+      this.fetchDistrictData();
       this.trendChart1 = am4core.create("trendchart1", am4charts.XYChart);
       this.categoryAxis = this.trendChart1.xAxes.push(new am4charts.CategoryAxis());
       this.valueAxis = this.trendChart1.yAxes.push(new am4charts.ValueAxis());
-
       this.chartMap = am4core.create("mapdiv", am4maps.MapChart);
-  
-      // Set map definition
       this.chartMap.geodata = am4geodata_indiaHigh;
-      // Set projection
       this.chartMap.projection = new am4maps.projections.Miller();
-
-      this.polygonSeries = this.chartMap.series.push(new am4maps.MapPolygonSeries());  
+      this.polygonSeries = this.chartMap.series.push(new am4maps.MapPolygonSeries()); 
+      this.chartMap.tapToActivate = true;
+      this.trendChart1.tapToActivate = true;
+      this.chartMap.tapTimeout = 5000; 
+      this.trendChart1.tapTimeout = 5000; 
+      this.chartMap.homeZoomLevel = 0;
+      this.chartMap.homeGeoPoint= 
+      {
+        longitude: 82.80069999999999, 
+        latitude: 22.41940558442722
+      }
     }
     catch(err){
       console.log(err);
@@ -242,7 +248,7 @@ export class AppComponent implements OnInit, OnDestroy{
 
   fetchDistrictData(){
     this.appService.getDistrictData().subscribe((res)=>{
-      
+      console.log(res);
     })
   }
 
@@ -314,7 +320,6 @@ export class AppComponent implements OnInit, OnDestroy{
       // Create map polygon series
       let lastSelected;
       let eventData;
-      
       if(this.blue){
         this.polygonSeries.heatRules.push({
           property: "fill",
@@ -374,16 +379,18 @@ export class AppComponent implements OnInit, OnDestroy{
       this.chartMap.seriesContainer.draggable = false;
       
       polygonTemplate.events.on("hit",(ev)=>{
+        // this.showTable = false;
         eventData = ev.target;
-        if (lastSelected) {
-          lastSelected.isActive = false;
+        if (this.statePolygon) {
+          this.statePolygon.isActive = false;
         }
         ev.target.series.chart.zoomToMapObject(ev.target);
-        if (lastSelected !== ev.target) {
-          lastSelected = ev.target;
+        if (this.statePolygon !== ev.target) {
+          this.statePolygon = ev.target;
         }
         let stateSelected = ev.target.dataItem.dataContext.name.toString();
-        this.searchText = stateSelected;
+        this.stateSelected = stateSelected;
+        this.searchText = this.stateSelected;
       });
 
       // Create hover state and set alternative fill color
@@ -418,10 +425,18 @@ export class AppComponent implements OnInit, OnDestroy{
       // this.chartMap.zoomControl = new am4maps.ZoomControl();
       let homeButton = this.chartMap.chartContainer.createChild(am4core.Button);
       homeButton.events.on("hit", ()=>{
+        this.stateSelected = "";
         this.searchText = "";
         this.chartMap.goHome();
-        if (lastSelected) {
-          lastSelected.isActive = false;
+        if (this.statePolygon) {
+          this.statePolygon.isActive = false;
+        }
+        this.showTable = true;
+        this.chartMap.homeZoomLevel = 0;
+        this.chartMap.homeGeoPoint= 
+        {
+          longitude: 82.80069999999999, 
+          latitude: 22.41940558442722
         }
       });
 
@@ -467,16 +482,19 @@ export class AppComponent implements OnInit, OnDestroy{
     this.ngAfterViewInit();
   }
 
-  zoomState(statecode){
-    let stateCode="IN-"+statecode;
-    this.chartMap.dispatchImmediately("ready");
-    
-    let state= this.polygonSeries.getPolygonById(stateCode);
-    this.chartMap.events.on("ready", (ev)=> {
-      this.chartMap.zoomToMapObject(this.polygonSeries.getPolygonById(stateCode));
-      setTimeout(function() {
-        state.isActive = true;
-      }, 1000);
-    });
+  zoomState(statecode,stateName){
+    if(stateName!="Total" && stateName!="State Unassigned"){
+      this.stateCode="IN-"+statecode;
+      this.stateSelected = stateName;
+      this.searchText = stateName;
+      this.statePolygon= this.polygonSeries.getPolygonById(this.stateCode);
+      this.chartMap.zoomToMapObject(this.polygonSeries.getPolygonById(this.stateCode));
+      this.statePolygon.isActive = true;
+      // this.showTable = false;
+    }
+  }
+
+  setTablePage(page){
+    this.pageNmbr=page;
   }
 }

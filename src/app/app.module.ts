@@ -7,12 +7,14 @@ import { AppComponent } from './app.component';
 
 import { HttpClientModule } from '@angular/common/http';
 import { FilterPipe } from './filter.pipe';
+import { PaginatePipe } from './filter.pipe';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
     AppComponent,
     FilterPipe,
+    PaginatePipe
   ],
   imports: [
     BrowserModule,

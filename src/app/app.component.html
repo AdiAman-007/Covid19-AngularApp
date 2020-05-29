@@ -34,7 +34,7 @@
   </div>
   <div class="row hero-bottom">
     <p style="margin-left: 20px;margin-right: 20px;">Total samples tested: {{testedSummary.totalsamplestested}}</p>
-    <p style="margin-left: 20px;margin-right: 20px;">Samples tested today: {{testedSummary.samplereportedtoday}}</p>
+    <p style="margin-left: 20px;margin-right: 20px;">Samples reported today: {{testedSummary.samplereportedtoday}}</p>
   </div>
   <br/>
   <div class="trend row">
@@ -64,8 +64,8 @@
     <div class="content-left col-lg">
       <div class="map">
         <div>
-          <h4 class="text-dark" *ngIf="!searchText">INDIA MAP</h4>
-          <h4 *ngIf="searchText">{{searchText | uppercase}}</h4>
+          <h4 class="text-dark" *ngIf="!stateSelected">INDIA MAP</h4>
+          <h4 *ngIf="stateSelected">{{stateSelected | uppercase}}</h4>
           <p class="text-light text-small">Hover/select a state/UT for more details</p>
         </div>
         <div class="map-header">
@@ -79,57 +79,44 @@
         <div id="mapdiv"></div>
       </div>
     </div>
-    <div class="content-right col-lg">
+    <div class="content-right col-lg show-table" *ngIf="showTable">
       <input class="row search-box" [(ngModel)]="searchText" placeholder="Search with state name">
-      <ngb-accordion #acc="ngbAccordion" activeIds="ngb-panel-header">
+      <ngb-accordion>
         <ngb-panel id="custom-panel-1">
         <ng-template ngbPanelHeader>
           <div class="d-flex align-items-center justify-content-between">
-            <button ngbPanelToggle class="btn p-0" style="text-align: left; font-size: 0.8em !important; font-weight: bolder; color: #6200ea;">{{accordianHeaderMobile.col1}}</button>
-            <p class="m-0" style="text-align: right; font-size: 0.8em !important; font-weight: bolder; color: #5B86E5;">{{accordianHeaderMobile.col2}}</p>
-            <p class="m-0" style="text-align: right; font-size: 0.8em !important; font-weight: bolder; color: #dc3545; ">{{accordianHeaderMobile.col3}}</p>
-            <p class="m-0" style="text-align: right; font-size: 0.8em !important; font-weight: bolder; color: #1D976C;">{{accordianHeaderMobile.col4}}</p>
-            <p class="m-0" style="text-align: right; font-size: 0.8em !important; font-weight: bolder; color: #757575;">{{accordianHeaderMobile.col5}}</p>
+            <button class="btn p-0" style="text-align: left; font-size: 1em !important; font-weight: bolder; color: #6200ea;">{{accordianHeaderMobile.col1}}</button>
+            <p class="m-0" style="text-align: right; font-size: 1em !important; font-weight: bolder; color: #5B86E5;">{{accordianHeaderMobile.col2}}</p>
+            <p class="m-0" style="text-align: right; font-size: 1em !important; font-weight: bolder; color: #dc3545; ">{{accordianHeaderMobile.col3}}</p>
+            <p class="m-0" style="text-align: right; font-size: 1em !important; font-weight: bolder; color: #1D976C;">{{accordianHeaderMobile.col4}}</p>
+            <p class="m-0" style="text-align: right; font-size: 1em !important; font-weight: bolder; color: #757575;">{{accordianHeaderMobile.col5}}</p>
           </div>
         </ng-template>
         </ngb-panel>
       </ngb-accordion>
-      <div *ngFor="let data of stateData | filter : searchText">
-        <ngb-accordion #acc="ngbAccordion" [closeOthers]="true" activeIds="ngb-panel-body">
-          <ngb-panel  *ngIf="data.state!='State Unassigned'">
-          <ng-template ngbPanelHeader let-opened="opened">
+      <div *ngFor="let data of stateData| filter : searchText | paginate:pageNmbr ">
+        <ngb-accordion #acc="ngbAccordion" *ngIf="data.state!='State Unassigned' && data.state!='Total'">
+          <ngb-panel>
+          <ng-template ngbPanelHeader>
             <div class="d-flex align-items-center justify-content-between">
-              <button ngbPanelToggle class="btn btn-link p-0" style="text-align: left; font-size: 0.8em; color: #6200ea;" (click)="zoomState(data.statecode)">{{data.state}}</button>
+              <button class="btn btn-link p-0" style="text-align: left; font-size: 0.8em; color: #6200ea;" (click)="zoomState(data.statecode, data.state)">{{data.state}}</button>
               <p class="m-0" style="text-align: right; font-size: 0.8em; color: #5B86E5;">{{data.confirmed}}</p>
               <p class="m-0" style="text-align: right; font-size: 0.8em; color: #dc3545;">{{data.active}}</p>
               <p class="m-0" style="text-align: right; font-size: 0.8em; color: #1D976C;">{{data.recovered}}</p>
               <p class="m-0" style="text-align: right; font-size: 0.8em; color: #757575;">{{data.deaths}}</p>
             </div>
           </ng-template>
-          <ng-template ngbPanelContent>
-
-          </ng-template>
           </ngb-panel>
         </ngb-accordion>
+      </div><br/>
+      <div class="pagination" *ngIf="!searchText">
+        <div *ngFor="let page of pageList">
+          <div class="page-nmbr" (click)="setTablePage(page)" [class.page-nmbr-active]="pageNmbr==page">{{page+1}}</div>
+        </div>
       </div>
-      <!-- <table class="table table-sm table-striped" >
-        <thead class="thead-darker">
-          <th>State</th>
-          <th>Confirmed</th>
-          <th>Active</th>
-          <th>Recovered</th>
-          <th>Deaths</th>
-        </thead>
-        <tbody>
-          <tr *ngFor="let data of stateData | filter : searchText" >
-            <td *ngIf="data.state!='Total'">{{data.state}}</td>
-            <td *ngIf="data.state!='Total'">{{data.confirmed}}</td>
-            <td *ngIf="data.state!='Total'">{{data.active}}</td>
-            <td *ngIf="data.state!='Total'">{{data.recovered}}</td>
-            <td *ngIf="data.state!='Total'">{{data.deaths}}</td>
-          </tr>
-        </tbody>
-      </table> -->
+    </div>
+    <div class="content-right col-lg show-state"  *ngIf="!showTable">
+      
     </div>
   </div>
   
@@ -137,7 +124,12 @@
       <img src="/assets/covid19.jpg" style="width: 100%; height: auto;">
     </div>
   <footer class="row" style="margin-top: 50px; border-top: 1px solid #b3b3b3; display: flex;justify-content: space-between; min-height: 10vh;">
-    <p class="text-small text-light" style="text-align: center; margin-top: 20px; margin-left: 4vw;">Stay home! Stay safe!</p>
-    <p class="text-small text-light" style="text-align: center; margin-top: 20px; margin-right: 4vw;">Ver. 2.8</p>
+    <p class="text-small text-light" style="text-align: left; margin-top: 20px; margin-left: 4vw;">Stay home! Stay safe!<br/>Ver. 3.0</p>
+    <p class="text-small text-light" style="text-align: center; margin-top: 20px; margin-right: 4vw;"></p>
+    <p class="text-small text-light" style="text-align: right; margin-top: 20px; margin-right: 4vw;">Changelog !<br/>
+      Added pagination to state table.<br/>
+      Fixed issue with scrolling over maps and chart on mobile devices.<br/>
+      Fixed issue of being able to select multiple states together.
+    </p>
   </footer>
 </div>
