@@ -326,7 +326,7 @@ export class AppComponent implements OnInit, OnDestroy{
           target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#ffffff"),
           "max": am4core.color("#5B86E5"),
-          "maxValue": 20000
+          "maxValue": this.stateData[1].confirmed/2
         });
         this.polygonSeries.data = this.mapDataConfirmed;
         this.polygonSeries.mapPolygons.template.stroke = am4core.color("#5B86E5");
@@ -337,7 +337,7 @@ export class AppComponent implements OnInit, OnDestroy{
           target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#ffffff"),
           "max": am4core.color("#1D976C"),
-          "maxValue": 20000
+          "maxValue": this.stateData[1].recovered/2
         });
         this.polygonSeries.data = this.mapDataRecovered;
         this.polygonSeries.mapPolygons.template.stroke = am4core.color("#1D976C");
@@ -348,7 +348,7 @@ export class AppComponent implements OnInit, OnDestroy{
           target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#ffffff"),
           "max": am4core.color("#dc3545"),
-          "maxValue": 20000
+          "maxValue": this.stateData[1].active/2
         });
         this.polygonSeries.data = this.mapDataActive;
         this.polygonSeries.mapPolygons.template.stroke = am4core.color("#dc3545");
@@ -359,7 +359,7 @@ export class AppComponent implements OnInit, OnDestroy{
           target: this.polygonSeries.mapPolygons.template,
           "min": am4core.color("#FFFFFF"),
           "max": am4core.color("#757575"),
-          "maxValue": 1000
+          "maxValue": this.stateData[1].deaths/2
         });
         this.polygonSeries.data = this.mapDataDeaths;
         this.polygonSeries.mapPolygons.template.stroke = am4core.color("#757575");
